@@ -12,7 +12,13 @@ readme = "README.md"
 keywords = ["compiler", "error", "warning", "format", "rustc"]
 categories = ["command-line-interface"]
 
+[features]
+codemap-impl = ["codemap"]
+
 [dependencies]
-codemap = { version = "0.1.0" }
 atty = "0.2.11"
 termcolor = "1.0.4"
+codemap = { version = "0.1.0", optional = true }
+
+[dev-dependencies]
+codemap = { version = "0.1.0" }

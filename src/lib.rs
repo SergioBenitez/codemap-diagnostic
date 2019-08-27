@@ -33,22 +33,28 @@
 //! ```
 
 extern crate termcolor;
-extern crate codemap;
 extern crate atty;
 
-use codemap::Span;
+#[cfg(feature = "codemap-impl")]
+extern crate codemap;
+
+#[cfg(feature = "codemap-impl")]
+mod codemap_impl;
 
 mod lock;
 mod snippet;
 mod styled_buffer;
 mod emitter;
 
+pub mod traits;
+
 pub use emitter::{ ColorConfig, Emitter };
 use termcolor::{ ColorSpec, Color };
+use traits::CodeMap;
 
 /// A diagnostic message.
 #[derive(Clone, Debug)]
-pub struct Diagnostic {
+pub struct Diagnostic<C: CodeMap> {
     /// The severity of the message, used to set color scheme
     pub level: Level,
 
@@ -59,7 +65,7 @@ pub struct Diagnostic {
     pub code: Option<String>,
 
     /// Locations to underline in the code
-    pub spans: Vec<SpanLabel>,
+    pub spans: Vec<SpanLabel<C>>,
 }
 
 /// A level representing the severity of a Diagnostic.
@@ -120,11 +126,11 @@ impl Level {
 
 /// A labeled region of the code related to a Diagnostic.
 #[derive(Clone, Debug)]
-pub struct SpanLabel {
+pub struct SpanLabel<C: CodeMap> {
     /// The location in the code.
     ///
     /// This Span must come from the same CodeMap used to construct the Emitter.
-    pub span: Span,
+    pub span: C::Span,
 
     /// A label used to provide context for the underlined code.
     pub label: Option<String>,
