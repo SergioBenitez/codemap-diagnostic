@@ -72,6 +72,15 @@ impl<'a, C: CodeMap> Emitter<'a, C> {
         }
     }
 
+    /// Creates an emitter wrapping stdout.
+    pub fn stdout(color_config: ColorConfig, code_map: Option<&'a C>) -> Self {
+        let dst = Destination::from_stdout(color_config);
+        Emitter {
+            dst: dst,
+            cm: code_map,
+        }
+    }
+
    /// Creates an emitter wrapping a vector.
    pub fn vec(vec: &'a mut Vec<u8>, code_map: Option<&'a C>) -> Self {
        Emitter {
@@ -1028,6 +1037,21 @@ impl<'a> Destination<'a> {
             Destination::Terminal(StandardStream::stderr(choice))
         } else {
             Destination::Buffered(BufferWriter::stderr(choice))
+        }
+    }
+
+    fn from_stdout(color: ColorConfig) -> Destination<'a> {
+        let choice = color.to_color_choice();
+        // On Windows we'll be performing global synchronization on the entire
+        // system for emitting rustc errors, so there's no need to buffer
+        // anything.
+        //
+        // On non-Windows we rely on the atomicity of `write` to ensure errors
+        // don't get all jumbled up.
+        if cfg!(windows) {
+            Destination::Terminal(StandardStream::stdout(choice))
+        } else {
+            Destination::Buffered(BufferWriter::stdout(choice))
         }
     }
 
